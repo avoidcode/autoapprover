@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "MIREA AutoApprover",
+  "version": "1.0.0",
+  "description": "/// Yay!",
+  "icons": {
+    "32": "images/icon-32.png"
+  },
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "notifications",
+    "cookies"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "MIREA AutoApprover",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://events.webinar.ru/*",
+        "*://my.mts-link.ru/*"
+      ],
+      "js": [
+        "jsQR.min.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
