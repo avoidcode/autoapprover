@@ -61,9 +61,8 @@
     });
   }
 
-  chrome.runtime.onMessage.addListener(async (msg) => {
-    if (msg?.type === "SCREENSHOT_READY" && msg.dataUrl) {
-      const { width, height, imageData } = await getRGBAArrayFromDataURL(msg.dataUrl);
+  async function processScreenshot(dataUrl) {
+    const { width, height, imageData } = await getRGBAArrayFromDataURL(dataUrl);
       const code = jsQR(imageData, width, height, { inversionAttempts: "attemptBoth" });
       if (code) {
         const url = String.fromCharCode(...code.binaryData);
@@ -75,13 +74,21 @@
             return;
           }
           console.log(`Approving attendance with token: ${token}`);
-          chrome.runtime.sendMessage({ type: "REQUEST_APPROVE", token: token });
-          sentTokensMap.push(token);
+          chrome.runtime.sendMessage({ type: "REQUEST_APPROVE", token: token }, (response) => {
+            if (response && response.success)
+              sentTokensMap.push(token);
+          });
         }
       } else {
         console.log("No QR found...");
       }
+  }
+
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg?.type === "SCREENSHOT_READY" && msg.dataUrl) {
+      processScreenshot(msg.dataUrl);
     }
+    return true;
   });
 
 })();
