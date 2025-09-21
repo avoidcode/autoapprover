@@ -4,8 +4,6 @@
     AC_BTN_XPATH: '//*[contains(@class,"ModalTitle") and contains(text(), "Контроль присутствия")]/..//./button[contains(span/span/text(),"Подтверждаю")]'
   };
 
-  const sentTokensMap = [];
-
   var scanLoop = () => {
     chrome.runtime.sendMessage({ type: "REQUEST_SCAN" });
     acScanApprove();
@@ -37,58 +35,4 @@
     } catch (e) { }
     return results;
   }
-
-  function getRGBAArrayFromDataURL(dataURL) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        resolve({
-          width: img.width,
-          height: img.height,
-          imageData: imageData.data
-        });
-      };
-      img.onerror = (error) => {
-        reject(error);
-      };
-      img.src = dataURL;
-    });
-  }
-
-  async function processScreenshot(dataUrl) {
-    const { width, height, imageData } = await getRGBAArrayFromDataURL(dataUrl);
-    const code = jsQR(imageData, width, height, { inversionAttempts: "attemptBoth" });
-    if (code) {
-      const url = String.fromCharCode(...code.binaryData);
-      if (url.includes("mirea.ru") && url.includes("token")) {
-        const urlParams = new URLSearchParams(url.split('?')[1]);
-        const token = urlParams.get("token");
-        if (sentTokensMap.includes(token)) {
-          console.log(`Token already used: ${token}`);
-          return;
-        }
-        console.log(`Approving attendance with token: ${token}`);
-        chrome.runtime.sendMessage({ type: "REQUEST_APPROVE", token: token }, (response) => {
-          if (response && response.success)
-            sentTokensMap.push(token);
-        });
-      }
-    } else {
-      console.log("No QR found...");
-    }
-  }
-
-  chrome.runtime.onMessage.addListener((msg) => {
-    if (msg?.type === "SCREENSHOT_READY" && msg.dataUrl) {
-      processScreenshot(msg.dataUrl);
-    }
-    return true;
-  });
-
 })();
