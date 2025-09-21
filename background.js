@@ -42,7 +42,8 @@ async function processApprove(token, sendResponse) {
     "body": "\u0000\u0000\u0000\u0000&\n$" + token,
     "method": "POST",
     "mode": "cors",
-    "credentials": "include"
+    "credentials": "include",
+	"cache": "no-cache"
   });
 
   console.log(`Attendance approved for [${token}]!`);

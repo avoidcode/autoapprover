@@ -30,7 +30,7 @@
         "*://my.mts-link.ru/*"
       ],
       "js": [
-        "jsQR.min.js",
+        "lib/jsQR.min.js",
         "content.js"
       ],
       "run_at": "document_idle"
