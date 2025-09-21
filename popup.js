@@ -1,6 +1,18 @@
 const btnLogin = document.getElementById("btn-login");
 const txtStatus = document.getElementById("txt-status");
 
+function setAuthorized() {
+	txtStatus.innerText = "authorized";
+	txtStatus.style = "color: #00b837ff;";
+	btnLogin.style = "visibility: hidden;";
+}
+
+function setUnauthorized() {
+	txtStatus.innerText = "unauthorized";
+	txtStatus.style = "color: #b80000ff;";
+	btnLogin.style = "visibility: visible;";
+}
+
 (async () => {
 	fetch("https://attendance.mirea.ru/rtu_tc.rtu_attend.app.UserService/GetMeInfo", {
 		"headers": {
@@ -15,15 +27,15 @@ const txtStatus = document.getElementById("txt-status");
 		"credentials": "include",
 		"cache": "no-cache"
 	}).then(async (r) => {
-		const decoded = decodeProto(new Uint8Array(await (await r.blob()).arrayBuffer()), false).parts;
-		console.log(decoded);
-		txtStatus.innerText = "authorized" + decoded;
-        txtStatus.style = "color: #00b837ff;";
-        btnLogin.style = "visibility: hidden;";
+		const resp = await r.text();
+		console.log(resp);
+		if (resp.includes("http://schemas.microsoft.com/ws/2008/06/identity/claims/role")) {
+			setAuthorized();
+		} else {
+			setUnauthorized();
+		}
 	}).catch((e) => {
-		txtStatus.innerText = "unauthorized";
-        txtStatus.style = "color: #b80000ff;";
-        btnLogin.style = "visibility: visible;";
+		setUnauthorized();
 	})
 })();
 
