@@ -42,10 +42,7 @@ async function processScreenshot(dataUrl) {
         return;
       }
       console.log(`Approving attendance with token: ${token}`);
-      chrome.runtime.sendMessage({ type: "REQUEST_APPROVE", token: token }, (response) => {
-        if (response && response.success)
-          sentTokensMap.push(token);
-      });
+      processApprove(token);
     }
   } else {
     console.log("No QR found...");
@@ -61,21 +58,20 @@ function processScan(tab) {
   } catch (e) { }
 }
 
-async function processApprove(token, sendResponse) {
+async function processApprove(token) {
   checkAuth((auth) => {
     if (auth) {
       requestApprove(token, (approved) => {
         if (approved) {
           console.log(`Attendance approved for [${token}]!`);
           makeNotification(`Your attendance approved! ///`);
-          sendResponse({ success: true });
+          sentTokensMap.push(token);
         }
       });
     } else {
       makeNotification("No auth! Please, login to pulse.mirea.ru as fast as possible!", () => {
         chrome.tabs.create({ url: "https://pulse.mirea.ru" });
       });
-      sendResponse({ success: false });
     }
   });
 }
