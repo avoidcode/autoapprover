@@ -13,7 +13,7 @@
   setTimeout(scanLoop, SETTINGS.SCAN_INTERVAL);
 
   function acScanApprove() {
-    const foundElements = getElementsByXPath(SETTINGS.AC_BTN_XPATH);
+    const foundElements = getElementsByXPath(SETTINGS.AC_BTN_XPATH, document);
     if (foundElements.length > 0) {
       foundElements.forEach(e => {
         e.click();
