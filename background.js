@@ -1,10 +1,31 @@
 importScripts('api.js', 'lib/jsQR.min.js');
 
+chrome.runtime.onInstalled.addListener(async () => {
+  const rule = {
+    id: 1,
+    priority: 1,
+    action: {
+      type: "modifyHeaders",
+      requestHeaders: [{ header: "Origin", operation: "remove" }]
+    },
+    condition: {
+      initiatorDomains: [chrome.runtime.id],
+      resourceTypes: ["xmlhttprequest"],
+      requestMethods: ["get", "post", "put", "patch", "delete"]
+    }
+  };
+
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: [rule.id],
+    addRules: [rule]
+  });
+});
+
 function makeNotification(message, clickCallback = null) {
   chrome.notifications.create(null, {
-    type: 'basic',
-    iconUrl: 'images/icon-32.png',
-    title: 'MIREA AutoApprover',
+    type: "basic",
+    iconUrl: "images/icon-32.png",
+    title: "MIREA AutoApprover",
     message: message
   }, (notificationId) => {
     chrome.notifications.onClicked.addListener((clickedNotificationId) => {
@@ -18,7 +39,7 @@ async function getImageData(dataURL) {
   const blob = await fetch(dataURL).then(r => r.blob());
   const img = await createImageBitmap(blob);
   const offscreen = new OffscreenCanvas(img.width, img.height);
-  const ctx = offscreen.getContext('2d');
+  const ctx = offscreen.getContext("2d");
   ctx.drawImage(img, 0, 0);
   return {
     width: img.width,
