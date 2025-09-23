@@ -34,5 +34,10 @@ function requestApprove(token, statusCallback) {
   fetch(BASE_URL + "/rtu_tc.attendance.api.StudentService/SelfApproveAttendance", {
     ...common_fetch_params,
     "body": "\u0000\u0000\u0000\u0000&\n$" + token,
-  }).then((r) => statusCallback(true)).catch((e) => statusCallback(false));
+  }).then(async (r) => {
+    if ((await r.blob()).size > 100)
+      statusCallback(true);
+    else
+      statusCallback(false);
+  }).catch((e) => statusCallback(false));
 }

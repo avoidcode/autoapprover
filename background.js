@@ -27,9 +27,18 @@ async function getImageData(dataURL) {
   };
 }
 
-const sentTokensMap = [];
+const approvedTabIds = [];
 
-async function processScreenshot(dataUrl) {
+function processScan(tab) {
+  try {
+    chrome.tabs.captureVisibleTab(tab?.windowId, {}, function (dataUrl) {
+      if (!approvedTabIds.includes(tab.id) && dataUrl)
+        processScreenshot(dataUrl, tab.id);
+    });
+  } catch (e) { }
+}
+
+async function processScreenshot(dataUrl, source) {
   const { width, height, imageData } = await getImageData(dataUrl);
   const code = jsQR(imageData, width, height, { inversionAttempts: "attemptBoth" });
   if (code) {
@@ -37,35 +46,22 @@ async function processScreenshot(dataUrl) {
     if (url.includes("mirea.ru") && url.includes("token")) {
       const urlParams = new URLSearchParams(url.split('?')[1]);
       const token = urlParams.get("token");
-      if (sentTokensMap.includes(token)) {
-        console.log(`Token already used: ${token}`);
-        return;
-      }
       console.log(`Approving attendance with token: ${token}`);
-      processApprove(token);
+      processApprove(token, source);
     }
   } else {
     console.log("No QR found...");
   }
 }
 
-function processScan(tab) {
-  try {
-    chrome.tabs.captureVisibleTab(tab?.windowId, {}, function (dataUrl) {
-      if (dataUrl)
-        processScreenshot(dataUrl);
-    });
-  } catch (e) { }
-}
-
-async function processApprove(token) {
+async function processApprove(token, source) {
   checkAuth((auth) => {
     if (auth) {
       requestApprove(token, (approved) => {
         if (approved) {
           console.log(`Attendance approved for [${token}]!`);
           makeNotification(`Your attendance approved! ///`);
-          sentTokensMap.push(token);
+          approvedTabIds.push(source);
         }
       });
     } else {
