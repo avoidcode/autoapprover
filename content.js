@@ -1,7 +1,7 @@
 (() => {
   const SETTINGS = {
-    SCAN_INTERVAL:        1000 * 20, // Scan for QR codes and AC every 20 seconds
-    COOLDOWN_PERIOD:      1000 * 60 * 10, // Send approval requests not often than once a 10 minute period
+    SCAN_INTERVAL:        1000 * 20,      // Scan for QR codes and AC every 20 seconds
+    COOLDOWN_PERIOD:      1000 * 60 * 10, // Send approval requests not often than once a 10 minute period after a successful approval
     AC_BTN_APPROVE_XPATH: '//*[contains(@class,"ModalTitle") and contains(text(), "Контроль присутствия")]/..//./button[contains(span/span/text(), "Подтверждаю")]',
     AC_BTN_CLOSE_XPATH:   '//*[contains(@class,"ModalContent")]/..//./button[contains(span/text(), "Закрыть")]'
   };
@@ -9,7 +9,7 @@
   var cooldownPeriod = false;
 
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg?.type === "APPROVE_STATUS" && msg?.status) {
+    if (msg?.type === "APPROVAL_STATUS" && msg?.status) {
       cooldownPeriod = true;
       setTimeout(() => {
         cooldownPeriod = false;

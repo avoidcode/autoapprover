@@ -30,7 +30,8 @@ function makeNotification(message, clickCallback = null) {
   }, (notificationId) => {
     chrome.notifications.onClicked.addListener((clickedNotificationId) => {
       if (clickedNotificationId === notificationId)
-        clickCallback();
+        if (clickCallback)
+          clickCallback();
     });
   });
 }
@@ -43,6 +44,8 @@ async function processApprove(token, successCallback) {
           console.log(`Attendance approved for [${token}]!`);
           makeNotification(`Your attendance approved! ///`);
           successCallback();
+        } else {
+          makeNotification("There are problems with your attendance approval!\nRequest approval from your teacher in the chat.");
         }
       });
     } else {
@@ -55,7 +58,7 @@ async function processApprove(token, successCallback) {
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.type === "REQUEST_APPROVE" && msg?.token) {
-    processApprove(msg.token, () => sendResponse({ type: "APPROVE_STATUS", status: true }));
+    processApprove(msg.token, () => sendResponse({ type: "APPROVAL_STATUS", status: true }));
   }
   return true;
 });
