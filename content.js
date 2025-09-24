@@ -1,10 +1,11 @@
 (() => {
   const SETTINGS = {
-    SCAN_INTERVAL: 5000,
-    AC_BTN_XPATH: '//*[contains(@class,"ModalTitle") and contains(text(), "Контроль присутствия")]/..//./button[contains(span/span/text(),"Подтверждаю")]'
+    SCAN_INTERVAL:        1000 * 10, // Every 10 seconds
+    AC_BTN_APPROVE_XPATH: '//*[contains(@class,"ModalTitle") and contains(text(), "Контроль присутствия")]/..//./button[contains(span/span/text(),"Подтверждаю")]',
+    AC_BTN_CLOSE_XPATH:   '//*[contains(@class,"ModalContent")]/..//./button[contains(span/text(),"Закрыть")]'
   };
 
-  var scanLoop = () => {
+  const scanLoop = () => {
     chrome.runtime.sendMessage({ type: "REQUEST_SCAN" });
     acScanApprove();
 
@@ -13,18 +14,22 @@
   setTimeout(scanLoop, SETTINGS.SCAN_INTERVAL);
 
   function acScanApprove() {
-    const foundElements = getElementsByXPath(SETTINGS.AC_BTN_XPATH, document);
-    if (foundElements.length > 0) {
-      foundElements.forEach(e => {
-        e.click();
-      })
-    }
+    getElementsByXPath(SETTINGS.AC_BTN_XPATH, document).forEach(e1 => {
+      e1.click();
+      console.log("Approve button found on page! Clicked!");
+      setTimeout(() => {
+        getElementsByXPath(SETTINGS.AC_BTN_CLOSE_XPATH, document).forEach(e2 => {
+          e2.click();
+          console.log("Modal closed!");
+        });
+      }, 500);
+    });
   }
 
   function getElementsByXPath(xPath, contextNode) {
     let results = [];
-    let evaluator = new XPathEvaluator();
     try {
+      let evaluator = new XPathEvaluator();
       let expression = evaluator.createExpression(xPath);
       if (expression) {
         let query = expression.evaluate(contextNode, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
