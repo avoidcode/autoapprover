@@ -1,5 +1,7 @@
 importScripts('api.js', 'lib/jsQR.min.js');
 
+const RESET_PERIOD = 1000 * 60 * 10; // Every 10 minutes
+
 chrome.runtime.onInstalled.addListener(async () => {
   const rule = {
     id: 1,
@@ -20,6 +22,14 @@ chrome.runtime.onInstalled.addListener(async () => {
     addRules: [rule]
   });
 });
+
+const approvedTabIds = [];
+
+const resetLoop = () => {
+  approvedTabIds.splice(0, approvedTabIds.length);
+  setTimeout(resetLoop, RESET_PERIOD);
+};
+setTimeout(resetLoop, RESET_PERIOD);
 
 function makeNotification(message, clickCallback = null) {
   chrome.notifications.create(null, {
@@ -47,8 +57,6 @@ async function getImageData(dataURL) {
     imageData: ctx.getImageData(0, 0, img.width, img.height).data
   };
 }
-
-const approvedTabIds = [];
 
 function processScan(tab) {
   try {

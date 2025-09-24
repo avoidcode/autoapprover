@@ -10,7 +10,6 @@
     "activeTab",
     "tabs",
     "notifications",
-    "cookies",
     "declarativeNetRequest"
   ],
   "host_permissions": [
