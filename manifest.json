@@ -32,6 +32,17 @@
         "content.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://events.webinar.ru/*",
+        "*://my.mts-link.ru/*"
+      ],
+      "js": [
+        "content_preload.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
     }
   ]
 }

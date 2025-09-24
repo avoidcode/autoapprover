@@ -1,8 +1,8 @@
 (() => {
   const SETTINGS = {
     SCAN_INTERVAL:        1000 * 10, // Every 10 seconds
-    AC_BTN_APPROVE_XPATH: '//*[contains(@class,"ModalTitle") and contains(text(), "Контроль присутствия")]/..//./button[contains(span/span/text(),"Подтверждаю")]',
-    AC_BTN_CLOSE_XPATH:   '//*[contains(@class,"ModalContent")]/..//./button[contains(span/text(),"Закрыть")]'
+    AC_BTN_APPROVE_XPATH: '//*[contains(@class,"ModalTitle") and contains(text(), "Контроль присутствия")]/..//./button[contains(span/span/text(), "Подтверждаю")]',
+    AC_BTN_CLOSE_XPATH:   '//*[contains(@class,"ModalContent")]/..//./button[contains(span/text(), "Закрыть")]'
   };
 
   const scanLoop = () => {
