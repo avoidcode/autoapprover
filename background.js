@@ -1,6 +1,4 @@
-importScripts('api.js', 'lib/jsQR.min.js');
-
-const RESET_PERIOD = 1000 * 60 * 10; // Every 10 minutes
+importScripts('api.js');
 
 chrome.runtime.onInstalled.addListener(async () => {
   const rule = {
@@ -23,14 +21,6 @@ chrome.runtime.onInstalled.addListener(async () => {
   });
 });
 
-const approvedTabIds = [];
-
-const resetLoop = () => {
-  approvedTabIds.splice(0, approvedTabIds.length);
-  setTimeout(resetLoop, RESET_PERIOD);
-};
-setTimeout(resetLoop, RESET_PERIOD);
-
 function makeNotification(message, clickCallback = null) {
   chrome.notifications.create(null, {
     type: "basic",
@@ -45,52 +35,14 @@ function makeNotification(message, clickCallback = null) {
   });
 }
 
-async function getImageData(dataURL) {
-  const blob = await fetch(dataURL).then(r => r.blob());
-  const img = await createImageBitmap(blob);
-  const offscreen = new OffscreenCanvas(img.width, img.height);
-  const ctx = offscreen.getContext("2d");
-  ctx.drawImage(img, 0, 0);
-  return {
-    width: img.width,
-    height: img.height,
-    imageData: ctx.getImageData(0, 0, img.width, img.height).data
-  };
-}
-
-function processScan(tab) {
-  try {
-    chrome.tabs.captureVisibleTab(tab?.windowId, {}, function (dataUrl) {
-      if (!approvedTabIds.includes(tab.id) && dataUrl)
-        processScreenshot(dataUrl, tab.id);
-    });
-  } catch (e) { }
-}
-
-async function processScreenshot(dataUrl, source) {
-  const { width, height, imageData } = await getImageData(dataUrl);
-  const code = jsQR(imageData, width, height, { inversionAttempts: "attemptBoth" });
-  if (code) {
-    const url = String.fromCharCode(...code.binaryData);
-    if (url.includes("mirea.ru") && url.includes("token")) {
-      const urlParams = new URLSearchParams(url.split('?')[1]);
-      const token = urlParams.get("token");
-      console.log(`Approving attendance with token: ${token}`);
-      processApprove(token, source);
-    }
-  } else {
-    console.log("No QR found...");
-  }
-}
-
-async function processApprove(token, source) {
+async function processApprove(token, successCallback) {
   checkAuth((auth) => {
     if (auth) {
       requestApprove(token, (approved) => {
         if (approved) {
           console.log(`Attendance approved for [${token}]!`);
           makeNotification(`Your attendance approved! ///`);
-          approvedTabIds.push(source);
+          successCallback();
         }
       });
     } else {
@@ -102,8 +54,8 @@ async function processApprove(token, source) {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg?.type === "REQUEST_SCAN" && sender.tab != null) {
-    processScan(sender.tab);
+  if (msg?.type === "REQUEST_APPROVE" && msg?.token) {
+    processApprove(msg.token, () => sendResponse({ type: "APPROVE_STATUS", status: true }));
   }
   return true;
 });

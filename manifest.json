@@ -7,13 +7,13 @@
     "32": "images/icon-32.png"
   },
   "permissions": [
-    "activeTab",
-    "tabs",
     "notifications",
     "declarativeNetRequest"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "*://attendance.mirea.ru/*",
+    "*://events.webinar.ru/*",
+    "*://my.mts-link.ru/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -29,7 +29,8 @@
         "*://my.mts-link.ru/*"
       ],
       "js": [
-        "content.js"
+        "content.js",
+        "lib/jsQR.min.js"
       ],
       "run_at": "document_idle"
     },
