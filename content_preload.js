@@ -1,25 +1,20 @@
 (() => {
   "use strict";
 
-  const fetch = window.fetch;
+  const originalFetch = window.fetch;
 
   function lockedFetch(...args) {
-
-    try {
-      const requestUrl = args[0];
-      if (requestUrl.includes("/eventsessions/") && requestUrl.includes("/attentionControlCheckpoints")) {
-        return fetch.apply(this, {
-          ...args,
-          body: {
-            isFocused: true,
-            isSoundEnabled: true,
-            isVideoEnabled: true
-          }
-        });
-      }
-    } catch (e) { }
-
-    return fetch.apply(this, args);
+    const requestUrl = args[0];
+    if (requestUrl.includes("/api/light/eventsessions/") && requestUrl.includes("/setUserInvolvementStatus")) {
+      const fetchArgs = {
+        ...args[1],
+        body: "isFocused=true&isSoundEnabled=true&isVideoEnabled=true"
+      };
+      console.log("Hijacking AC request...");
+      return originalFetch.apply(this, [requestUrl, fetchArgs]);
+    } else {
+      return originalFetch.apply(this, args);
+    }
   }
 
   Object.freeze(lockedFetch);

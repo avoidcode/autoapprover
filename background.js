@@ -45,7 +45,9 @@ async function processApprove(token, successCallback) {
           makeNotification(`Your attendance approved! ///`);
           successCallback();
         } else {
-          makeNotification("There are problems with your attendance approval!\nRequest approval from your teacher in the chat.");
+          makeNotification("Unknown approval error!\nRequest approval from your teacher in the chat.\nClick this notification to disable autoapproval", () => {
+            successCallback();
+          });
         }
       });
     } else {
@@ -56,9 +58,9 @@ async function processApprove(token, successCallback) {
   });
 }
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, sender) => {
   if (msg?.type === "REQUEST_APPROVE" && msg?.token) {
-    processApprove(msg.token, () => sendResponse({ type: "APPROVAL_STATUS", status: true }));
+    processApprove(msg.token, () => chrome.tabs.sendMessage(sender.tab.id, { type: "APPROVAL_STATUS", status: true }));
   }
   return true;
 });

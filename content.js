@@ -1,15 +1,15 @@
 (() => {
-  const SETTINGS = {
+  const SETTINGS = Object.freeze({
     SCAN_INTERVAL:        1000 * 20,      // Scan for QR codes and AC every 20 seconds
     COOLDOWN_PERIOD:      1000 * 60 * 10, // Send approval requests not often than once a 10 minute period after a successful approval
     AC_BTN_APPROVE_XPATH: '//*[contains(@class,"ModalTitle") and contains(text(), "Контроль присутствия")]/..//./button[contains(span/span/text(), "Подтверждаю")]',
     AC_BTN_CLOSE_XPATH:   '//*[contains(@class,"ModalContent")]/..//./button[contains(span/text(), "Закрыть")]'
-  };
+  });
 
   var cooldownPeriod = false;
 
-  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg?.type === "APPROVAL_STATUS" && msg?.status) {
+  chrome.runtime.onMessage.addListener((msg, sender) => {
+    if (sender.id === chrome.runtime.id && msg?.type === "APPROVAL_STATUS" && msg?.status) {
       cooldownPeriod = true;
       setTimeout(() => {
         cooldownPeriod = false;
@@ -69,7 +69,7 @@
   setTimeout(scanLoop, SETTINGS.SCAN_INTERVAL);
 
   function acScanApprove() {
-    getElementsByXPath(SETTINGS.AC_BTN_XPATH, document).forEach(e1 => {
+    getElementsByXPath(SETTINGS.AC_BTN_APPROVE_XPATH, document).forEach(e1 => {
       e1.click();
       console.log("Approve button found on page! Clicked!");
       setTimeout(() => {
@@ -92,7 +92,7 @@
           results.push(query.snapshotItem(i));
         }
       }
-    } catch (e) { }
+    } catch (e) { console.error(e); }
     return results;
   }
 })();
